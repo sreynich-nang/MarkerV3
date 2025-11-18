@@ -10,3 +10,5 @@ __init__.py
 # Ignore virtual environments
 venv/
 env/
+
+*.pdf
