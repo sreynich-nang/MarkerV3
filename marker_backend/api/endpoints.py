@@ -44,7 +44,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))    
     
     
-@router.get("/download/{filename}")    
+@router.get("/download/{filename:path}")    
 def download(filename: str):    
     path = OUTPUTS_DIR / filename  
     if not path.exists():    
