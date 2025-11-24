@@ -85,3 +85,37 @@ async def filter_tables(document: str, sheets_per_file: int = 30, store_in_filte
     except Exception as e:  # noqa: BLE001
         logger.exception("Unexpected error during table extraction")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/download_table")
+def download_table(document: str, filename: str, store_in_filters: bool = False):
+    """Download a generated Excel table batch for a document.
+
+    Parameters:
+    - document: base document name (folder and markdown source name)
+    - filename: Excel file name (e.g. `tables_1.xlsx`)
+    - store_in_filters: if true, look under `filters/<document>/`, else under
+      `outputs/<document>/tables_xlsx_<document>/`.
+
+    Returns the Excel file or 404 if not found. Rejects path traversal attempts.
+    """
+    ensure_dirs()
+    # Basic traversal protection
+    if any(ch in filename for ch in ("..", "/", "\\")):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+
+    if store_in_filters:
+        base_dir = FILTERS_DIR / document
+    else:
+        base_dir = OUTPUTS_DIR / document / f"tables_xlsx_{document}"
+
+    path = base_dir / filename
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Excel file not found")
+
+    logger.info(f"Downloading Excel table file {path}")
+    return FileResponse(
+        path,
+        filename=path.name,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
