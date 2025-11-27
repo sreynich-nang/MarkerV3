@@ -10945,3 +10945,76 @@ Aborted!
 
 Recognizing Layout:   0%|          | 0/1 [00:00<?, ?it/s]
 
+2025-11-27 09:30:32,641 - INFO - marker_backend.api.endpoints - Saved upload to C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\StatisticalYearbookofCambodia2021.pdf
+2025-11-27 09:30:34,280 - INFO - marker_backend.services.marker_runner - Starting Marker for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\StatisticalYearbookofCambodia2021.pdf with cmd: marker_single 'C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\StatisticalYearbookofCambodia2021.pdf' --force_ocr --output_format markdown --output_dir 'C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\outputs'
+2025-11-27 09:31:26,833 - INFO - marker_backend.services.marker_runner - Marker finished for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\StatisticalYearbookofCambodia2021.pdf (exit=3221225786) in 52.55s
+2025-11-27 09:31:26,834 - DEBUG - marker_backend.services.marker_runner - Marker stdout for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\StatisticalYearbookofCambodia2021.pdf:
+<no stdout>
+2025-11-27 09:31:26,834 - DEBUG - marker_backend.services.marker_runner - Marker stderr for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\StatisticalYearbookofCambodia2021.pdf:
+Traceback (most recent call last):
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\Scripts\marker_single.exe\__main__.py", line 2, in <module>
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\scripts\convert_single.py", line 12, in <module>
+    from marker.config.parser import ConfigParser
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\config\parser.py", line 7, in <module>
+    from marker.converters.pdf import PdfConverter
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\converters\pdf.py", line 17, in <module>
+    from marker.builders.document import DocumentBuilder
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\builders\document.py", line 4, in <module>
+    from marker.builders.layout import LayoutBuilder
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\builders\layout.py", line 3, in <module>
+    from surya.layout import LayoutPredictor
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\layout\__init__.py", line 5, in <module>
+    from surya.common.predictor import BasePredictor
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\common\predictor.py", line 5, in <module>
+    from surya.common.load import ModelLoader
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\common\load.py", line 8, in <module>
+    class ModelLoader:
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\common\load.py", line 14, in ModelLoader
+    device: torch.device | str | None = settings.TORCH_DEVICE_MODEL,
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\settings.py", line 38, in TORCH_DEVICE_MODEL
+    if torch.cuda.is_available():
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\torch\cuda\__init__.py", line 182, in is_available
+    return torch._C._cuda_getDeviceCount() > 0
+KeyboardInterrupt
+
+2025-11-27 09:31:26,836 - ERROR - marker_backend.services.marker_runner - Marker failed for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\StatisticalYearbookofCambodia2021.pdf (exit=3221225786). See stderr in logs.
+2025-11-27 09:31:26,837 - ERROR - marker_backend.api.endpoints - Marker processing error
+Traceback (most recent call last):
+  File "C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\marker_backend\api\endpoints.py", line 24, in upload_pdf
+    output = run_marker_for_chunk(saved_path)
+  File "C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\marker_backend\services\marker_runner.py", line 334, in run_marker_for_chunk
+    raise MarkerError(f"Marker failed for {chunk_path}: {res.stderr}")
+marker_backend.core.exceptions.MarkerError: Marker failed for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\StatisticalYearbookofCambodia2021.pdf: Traceback (most recent call last):
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\Scripts\marker_single.exe\__main__.py", line 2, in <module>
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\scripts\convert_single.py", line 12, in <module>
+    from marker.config.parser import ConfigParser
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\config\parser.py", line 7, in <module>
+    from marker.converters.pdf import PdfConverter
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\converters\pdf.py", line 17, in <module>
+    from marker.builders.document import DocumentBuilder
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\builders\document.py", line 4, in <module>
+    from marker.builders.layout import LayoutBuilder
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\builders\layout.py", line 3, in <module>
+    from surya.layout import LayoutPredictor
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\layout\__init__.py", line 5, in <module>
+    from surya.common.predictor import BasePredictor
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\common\predictor.py", line 5, in <module>
+    from surya.common.load import ModelLoader
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\common\load.py", line 8, in <module>
+    class ModelLoader:
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\common\load.py", line 14, in ModelLoader
+    device: torch.device | str | None = settings.TORCH_DEVICE_MODEL,
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\surya\settings.py", line 38, in TORCH_DEVICE_MODEL
+    if torch.cuda.is_available():
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\torch\cuda\__init__.py", line 182, in is_available
+    return torch._C._cuda_getDeviceCount() > 0
+KeyboardInterrupt
+

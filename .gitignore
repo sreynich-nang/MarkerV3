@@ -12,3 +12,5 @@ venv/
 env/
 
 *.pdf
+*.png
+*.jpg
