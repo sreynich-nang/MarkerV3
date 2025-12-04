@@ -133,7 +133,7 @@ def run_marker_for_chunk_with_range(pdf_path: Path, page_range: str, chunk_id: i
     cmd = [MARKER_CLI, str(pdf_path), "--page_range", page_range] + MARKER_FLAGS  
   
     logger.info(f"Processing chunk {chunk_id} (pages {page_range}) for {pdf_path}")  
-    logger.debug(f"Command: {' '.join(shlex.quote(p) for p in cmd)}")  
+    logger.info(f"Command: {' '.join(shlex.quote(p) for p in cmd)}")  
       
     start = time.time()  
     res = subprocess.run(cmd, capture_output=True, text=True, env=env)  

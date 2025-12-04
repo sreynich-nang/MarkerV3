@@ -11018,3 +11018,82 @@ marker_backend.core.exceptions.MarkerError: Marker failed for C:\Users\snich\One
     return torch._C._cuda_getDeviceCount() > 0
 KeyboardInterrupt
 
+2025-12-04 14:40:00,966 - INFO - marker_backend.api.endpoints - Saved upload to C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf
+2025-12-04 14:40:01,733 - INFO - marker_backend.services.marker_runner - Starting Marker for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf with cmd: marker_single 'C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf' --force_ocr --output_format markdown --output_dir 'C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\outputs'
+2025-12-04 14:40:31,655 - INFO - marker_backend.services.marker_runner - Marker finished for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf (exit=3221225786) in 29.92s
+2025-12-04 14:40:31,656 - DEBUG - marker_backend.services.marker_runner - Marker stdout for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf:
+<no stdout>
+2025-12-04 14:40:31,656 - DEBUG - marker_backend.services.marker_runner - Marker stderr for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf:
+Traceback (most recent call last):
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\Scripts\marker_single.exe\__main__.py", line 2, in <module>
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\scripts\convert_single.py", line 12, in <module>
+    from marker.config.parser import ConfigParser
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\config\parser.py", line 7, in <module>
+    from marker.converters.pdf import PdfConverter
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\converters\__init__.py", line 6, in <module>
+    from marker.processors import BaseProcessor
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\processors\__init__.py", line 6, in <module>
+    from marker.schema.document import Document
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\schema\document.py", line 9, in <module>
+    from marker.schema.groups.page import PageGroup
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\schema\groups\__init__.py", line 6, in <module>
+    from marker.schema.groups.page import PageGroup
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\schema\groups\page.py", line 10, in <module>
+    from marker.providers import ProviderOutput
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\providers\__init__.py", line 9, in <module>
+    from marker.logger import configure_logging
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\logger.py", line 4, in <module>
+    from marker.settings import settings
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\settings.py", line 6, in <module>
+    import torch
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\torch\__init__.py", line 278, in <module>
+    _load_dll_libraries()
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\torch\__init__.py", line 254, in _load_dll_libraries
+    res = kernel32.LoadLibraryExW(dll, None, 0x00001100)
+KeyboardInterrupt
+
+2025-12-04 14:40:31,657 - ERROR - marker_backend.services.marker_runner - Marker failed for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf (exit=3221225786). See stderr in logs.
+2025-12-04 14:40:31,657 - ERROR - marker_backend.api.endpoints - Marker processing error
+Traceback (most recent call last):
+  File "C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\marker_backend\api\endpoints.py", line 24, in upload_pdf
+    output = run_marker_for_chunk(saved_path)
+  File "C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\marker_backend\services\marker_runner.py", line 334, in run_marker_for_chunk
+    raise MarkerError(f"Marker failed for {chunk_path}: {res.stderr}")
+marker_backend.core.exceptions.MarkerError: Marker failed for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf: Traceback (most recent call last):
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\Scripts\marker_single.exe\__main__.py", line 2, in <module>
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\scripts\convert_single.py", line 12, in <module>
+    from marker.config.parser import ConfigParser
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\config\parser.py", line 7, in <module>
+    from marker.converters.pdf import PdfConverter
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\converters\__init__.py", line 6, in <module>
+    from marker.processors import BaseProcessor
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\processors\__init__.py", line 6, in <module>
+    from marker.schema.document import Document
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\schema\document.py", line 9, in <module>
+    from marker.schema.groups.page import PageGroup
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\schema\groups\__init__.py", line 6, in <module>
+    from marker.schema.groups.page import PageGroup
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\schema\groups\page.py", line 10, in <module>
+    from marker.providers import ProviderOutput
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\providers\__init__.py", line 9, in <module>
+    from marker.logger import configure_logging
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\logger.py", line 4, in <module>
+    from marker.settings import settings
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\marker\settings.py", line 6, in <module>
+    import torch
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\torch\__init__.py", line 278, in <module>
+    _load_dll_libraries()
+  File "C:\Users\snich\anaconda3\envs\TorchMarker\lib\site-packages\torch\__init__.py", line 254, in _load_dll_libraries
+    res = kernel32.LoadLibraryExW(dll, None, 0x00001100)
+KeyboardInterrupt
+
+2025-12-04 14:54:35,366 - INFO - marker_backend.api.endpoints - Saved upload to C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf
+2025-12-04 14:54:37,024 - INFO - marker_backend.services.marker_runner - Starting Marker for C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf with cmd: marker_single 'C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\uploads\CAM102025.pdf' --force_ocr --output_format markdown --output_dir 'C:\Users\snich\OneDrive\Documents\GDDE\doc2_pdf_extraction\marker_fullStack\v5\backend\MarkerV3-chunking\MarkerV3\temp\outputs'
