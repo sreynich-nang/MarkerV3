@@ -202,6 +202,14 @@ def _discover_marker_output(pdf_path: Path, expected_path: Path, command_output:
         except Exception:  
             continue  
   
+    # After finding candidates, check if any are directories
+    for candidate in candidates[:]:  # Copy list to modify during iteration
+        if candidate.is_dir():
+            # Look for the actual .md file inside the directory
+            md_file = candidate / f"{pdf_path.stem}.md"
+            if md_file.exists() and md_file.is_file():
+                candidates.append(md_file)
+    
     # Deduplicate and sort by modification time (newest first)  
     unique = {}  
     for c in candidates:  
