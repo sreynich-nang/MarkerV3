@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from ..core.logger import get_logger    
 from ..core.config import ensure_dirs, UPLOADS_DIR, OUTPUTS_DIR, FILTERS_DIR  
 from ..services.file_handler import save_upload    
-from ..services.marker_runner import run_marker_for_chunked_pdf    
+from ..services.marker_runner import process_document    
 from ..models.schemas import UploadResponse, TableExtractionResponse    
 from ..core.exceptions import InvalidFileError, MarkerError  # Removed ChunkingError  
 import time    
@@ -14,15 +14,15 @@ logger = get_logger(__name__)
     
 @router.post("/upload", response_model=UploadResponse)    
 async def upload_pdf(file: UploadFile = File(...)):    
-    """Upload a PDF and process it with marker using chunking and --page_range."""    
+    """Upload a PDF or image and process it with marker (PDFs with chunking, images with OCR)."""    
     ensure_dirs()    
     start = time.time()    
     try:    
         saved_path = await save_upload(file)    
         logger.info(f"Saved upload to {saved_path}")    
     
-        output = run_marker_for_chunked_pdf(saved_path, chunk_size=5)    
-        logger.info(f"Marker produced output file: {output}")    
+        output = process_document(saved_path, chunk_size=5)    
+        logger.info(f"Marker produced output file: {output}")
     
         elapsed = time.time() - start    
     
