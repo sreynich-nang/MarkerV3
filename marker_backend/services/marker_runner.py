@@ -129,8 +129,8 @@ def run_marker_for_chunk_with_range(pdf_path: Path, page_range: str, chunk_id: i
         # re-raise to stop processing  
         raise  
   
-    # Build command with page range  
-    cmd = [MARKER_CLI, str(pdf_path), "--page_range", page_range] + MARKER_FLAGS  
+    # Build command with page range and explicit output directory  
+    cmd = [MARKER_CLI, str(pdf_path), "--page_range", page_range, "--output_dir", str(OUTPUTS_DIR)] + MARKER_FLAGS  
   
     logger.info(f"Processing chunk {chunk_id} (pages {page_range}) for {pdf_path}")  
     logger.info(f"Command: {' '.join(shlex.quote(p) for p in cmd)}")  
@@ -344,7 +344,7 @@ def run_marker_for_chunk(chunk_path: Path) -> Path:
         # re-raise to stop processing  
         raise  
   
-    cmd = [MARKER_CLI, str(chunk_path)] + MARKER_FLAGS  
+    cmd = [MARKER_CLI, str(chunk_path), "--output_dir", str(OUTPUTS_DIR)] + MARKER_FLAGS  
   
     logger.info(f"Starting Marker for {chunk_path} with cmd: {' '.join(shlex.quote(p) for p in cmd)}")  
     start = time.time()  
