@@ -171,49 +171,56 @@ def _discover_marker_output(pdf_path: Path, expected_path: Path, command_output:
     candidates = []  
     stem_pattern = f"{pdf_path.stem}*"  
   
-    # 1) look in configured MARKER_OUTPUT_DIR  
+    # 1) look in configured MARKER_OUTPUT_DIR for .md files only  
     from ..core.config import MARKER_OUTPUT_DIR  
     try:  
-        candidates.extend(list(MARKER_OUTPUT_DIR.glob(stem_pattern)))  
+        for item in MARKER_OUTPUT_DIR.glob(stem_pattern):  
+            if item.is_file() and item.suffix == '.md':  
+                candidates.append(item)  
+            elif item.is_dir():  
+                for md_file in item.glob("*.md"):  \
+                    candidates.append(md_file)  
     except Exception:  
         logger.debug(f"Could not access MARKER_OUTPUT_DIR: {MARKER_OUTPUT_DIR}")  
   
-    # 2) look in the input file's parent directory  
+    # 2) look in the input file's parent directory for .md files only (skip the input PDF)  
     try:  
-        candidates.extend(list(pdf_path.parent.glob(stem_pattern)))  
+        for item in pdf_path.parent.glob(stem_pattern):  
+            # Skip the input PDF file itself  
+            if item == pdf_path or (item.is_file() and item.suffix.lower() == '.pdf'):  
+                continue  
+            if item.is_file() and item.suffix == '.md':  
+                candidates.append(item)  
+            elif item.is_dir():  
+                for md_file in item.glob("*.md"):  \
+                    candidates.append(md_file)  
     except Exception:  
         pass  
   
-    # 3) look in current working directory  
+    # 3) look in current working directory for .md files only  
     try:  
-        candidates.extend(list(Path.cwd().glob(stem_pattern)))  
+        for item in Path.cwd().glob(stem_pattern):  
+            if item == pdf_path:  
+                continue  
+            if item.is_file() and item.suffix == '.md':  
+                candidates.append(item)  
+            elif item.is_dir():  
+                for md_file in item.glob("*.md"):  
+                    candidates.append(md_file)  
     except Exception:  
         pass  
   
     # 4) parse stdout/stderr for any .md path  
     import re  
-    md_paths = re.findall(r"[A-Za-z0-9_:\\/.\- ]+(?:\.md)?", command_output)  
+    md_paths = re.findall(r"[A-Za-z0-9_:\\/.\- ]+\.md", command_output)  
     for p in md_paths:  
         p = p.strip()  
         try:  
             pth = Path(p)  
-            if pth.exists() and pth.is_file():  
+            if pth.exists() and pth.is_file() and pth.suffix == '.md':  
                 candidates.append(pth)  
         except Exception:  
             continue  
-  
-    # 5) Check if candidates are directories and look for .md files inside  
-    for candidate in candidates[:]:  # Copy list to modify during iteration  
-        if candidate.is_dir():  
-            # Look for the actual .md file inside the directory  
-            md_file = candidate / f"{pdf_path.stem}.md"  
-            if md_file.exists() and md_file.is_file():  
-                candidates.append(md_file)  
-            # Also check for any .md files in the directory  
-            else:  
-                for md_file in candidate.glob("*.md"):  
-                    if md_file.is_file():  
-                        candidates.append(md_file)  
       
     # Deduplicate and sort by modification time (newest first)  
     unique = {}  
