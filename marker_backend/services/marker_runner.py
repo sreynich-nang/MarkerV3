@@ -21,6 +21,17 @@ import os
 logger = get_logger(__name__)  
   
   
+def _is_image_file(file_path: Path) -> bool:  
+    """Check if the file is an image based on extension"""  
+    image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff', '.webp'}  
+    return file_path.suffix.lower() in image_extensions  
+  
+  
+def _is_pdf_file(file_path: Path) -> bool:  
+    """Check if the file is a PDF"""  
+    return file_path.suffix.lower() == '.pdf'  
+  
+  
 def _get_total_pages(pdf_path: Path) -> int:  
     """Get total page count from PDF using pypdfium2"""  
     try:  
@@ -113,6 +124,61 @@ def wait_for_gpu_ready(timeout: int = GPU_WAIT_TIMEOUT_SEC, poll: int = GPU_POLL
             logger.error(msg)  
             raise MarkerError(msg)  
         time.sleep(poll)  
+  
+  
+def run_marker_for_image(image_path: Path) -> Path:  
+    """Process an image file with OCR using --force_ocr flag (no chunking)"""  
+    out_path = _expected_output_for(image_path)  
+  
+    env = os.environ.copy()  
+  
+    try:  
+        wait_for_gpu_ready()  
+    except MarkerError:  
+        raise  
+  
+    # Build command with --force_ocr flag for image processing  
+    cmd = [MARKER_CLI, str(image_path), "--force_ocr", "--output_dir", str(OUTPUTS_DIR)] + MARKER_FLAGS  
+  
+    logger.info(f"Processing image {image_path} with OCR")  
+    logger.info(f"Command: {' '.join(shlex.quote(p) for p in cmd)}")  
+      
+    start = time.time()  
+    res = subprocess.run(cmd, capture_output=True, text=True, env=env)  
+    duration = time.time() - start  
+  
+    logger.info(  
+        "Marker finished for image %s (exit=%s) in %.2fs",  
+        image_path.name,  
+        res.returncode,  
+        duration,  
+    )  
+    logger.debug("Marker stdout for image %s:\\n%s", image_path.name, res.stdout or "<no stdout>")  
+    logger.debug("Marker stderr for image %s:\\n%s", image_path.name, res.stderr or "<no stderr>")  
+  
+    if res.returncode != 0:  
+        logger.error("Marker failed for image %s (exit=%s). See stderr in logs.", image_path.name, res.returncode)  
+        raise MarkerError(f"Marker failed for image {image_path}: {res.stderr}")  
+  
+    image_output = _discover_marker_output(image_path, out_path, res.stdout + "\\n" + res.stderr)  
+    return image_output  
+  
+  
+def process_document(file_path: Path, chunk_size: int = 5) -> Path:  
+    """Main entry point - routes to appropriate processor based on file type"""  
+    if not file_path.exists():  
+        raise MarkerError(f"File not found: {file_path}")  
+  
+    logger.info(f"Processing document: {file_path} (type: {file_path.suffix})")  
+  
+    if _is_image_file(file_path):  
+        logger.info("Detected image file - using OCR processing without chunking")  
+        return run_marker_for_image(file_path)  
+    elif _is_pdf_file(file_path):  
+        logger.info(f"Detected PDF file - using chunk processing with chunk size {chunk_size}")  
+        return run_marker_for_chunked_pdf(file_path, chunk_size)  
+    else:  
+        raise MarkerError(f"Unsupported file type: {file_path.suffix}. Supported: .pdf, .jpg, .jpeg, .png, .bmp, .gif, .tiff, .webp")  
   
   
 def run_marker_for_chunk_with_range(pdf_path: Path, page_range: str, chunk_id: int) -> Path:  
