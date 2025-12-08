@@ -251,14 +251,27 @@ def combine_chunk_outputs(chunk_files: List[Path], pdf_path: Path) -> Path:
                   
                 logger.debug(f"Adding chunk {i+1}: {chunk_file}")  
                   
-                with open(chunk_file, 'r', encoding='utf-8') as infile:  
-                    content = infile.read()  
+                # Try multiple encodings to handle different file formats  
+                content = None  
+                for encoding in ['utf-8', 'utf-8-sig', 'latin-1', 'cp1252']:  
+                    try:  
+                        with open(chunk_file, 'r', encoding=encoding) as infile:  
+                            content = infile.read()  
+                        logger.debug(f"Successfully read {chunk_file} with {encoding} encoding")  
+                        break  
+                    except (UnicodeDecodeError, UnicodeError):  
+                        continue  
+                  
+                if content is None:  
+                    logger.warning(f"Could not decode {chunk_file} with standard encodings, using fallback")  
+                    with open(chunk_file, 'rb') as infile:  
+                        content = infile.read().decode('utf-8', errors='replace')  
                       
-                    # Add chunk separator if not the first chunk  
-                    if i > 0:  
-                        outfile.write("\n\n--- Chunk " + str(i+1) + " ---\n\n")  
+                # Add chunk separator if not the first chunk  
+                if i > 0:  
+                    outfile.write("\n\n--- Chunk " + str(i+1) + " ---\n\n")  
                       
-                    outfile.write(content)  
+                outfile.write(content)  
           
         logger.info(f"Successfully combined chunks into {combined_path}")  
         return combined_path  
