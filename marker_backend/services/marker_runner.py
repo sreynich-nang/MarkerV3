@@ -166,7 +166,7 @@ def _discover_marker_output(pdf_path: Path, expected_path: Path, command_output:
     if expected_path.exists():  
         return expected_path  
   
-    logger.debug("Expected output not found at {expected_path}; attempting discovery heuristics.")  
+    logger.debug(f"Expected output not found at {expected_path}; attempting discovery heuristics.")  
       
     candidates = []  
     stem_pattern = f"{pdf_path.stem}*"  
@@ -202,14 +202,19 @@ def _discover_marker_output(pdf_path: Path, expected_path: Path, command_output:
         except Exception:  
             continue  
   
-    # After finding candidates, check if any are directories
-    for candidate in candidates[:]:  # Copy list to modify during iteration
-        if candidate.is_dir():
-            # Look for the actual .md file inside the directory
-            md_file = candidate / f"{pdf_path.stem}.md"
-            if md_file.exists() and md_file.is_file():
-                candidates.append(md_file)
-    
+    # 5) Check if candidates are directories and look for .md files inside  
+    for candidate in candidates[:]:  # Copy list to modify during iteration  
+        if candidate.is_dir():  
+            # Look for the actual .md file inside the directory  
+            md_file = candidate / f"{pdf_path.stem}.md"  
+            if md_file.exists() and md_file.is_file():  
+                candidates.append(md_file)  
+            # Also check for any .md files in the directory  
+            else:  
+                for md_file in candidate.glob("*.md"):  
+                    if md_file.is_file():  
+                        candidates.append(md_file)  
+      
     # Deduplicate and sort by modification time (newest first)  
     unique = {}  
     for c in candidates:  
@@ -382,6 +387,19 @@ def run_marker_for_chunk(chunk_path: Path) -> Path:
                 candidates.append(pth)  
         except Exception:  
             continue  
+  
+    # 5) Check if candidates are directories and look for .md files inside  
+    for candidate in candidates[:]:  # Copy list to modify during iteration  
+        if candidate.is_dir():  
+            # Look for the actual .md file inside the directory  
+            md_file = candidate / f"{chunk_path.stem}.md"  
+            if md_file.exists() and md_file.is_file():  
+                candidates.append(md_file)  
+            # Also check for any .md files in the directory  
+            else:  
+                for md_file in candidate.glob("*.md"):  
+                    if md_file.is_file():  
+                        candidates.append(md_file)  
   
     # Deduplicate and sort by modification time (newest first)  
     unique = {}  
