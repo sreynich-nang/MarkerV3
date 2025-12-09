@@ -340,9 +340,9 @@ def combine_chunk_outputs(chunk_files: List[Path], pdf_path: Path) -> Path:
                     with open(chunk_file, 'rb') as infile:  
                         content = infile.read().decode('utf-8', errors='replace')  
                       
-                # Add chunk separator if not the first chunk  
-                if i > 0:  
-                    outfile.write("\n\n--- Chunk " + str(i+1) + " ---\n\n")  
+                # # Add chunk separator if not the first chunk  
+                # if i > 0:  
+                #     outfile.write("\n\n--- Chunk " + str(i+1) + " ---\n\n")  
                       
                 outfile.write(content)  
           

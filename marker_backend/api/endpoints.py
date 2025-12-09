@@ -46,10 +46,27 @@ async def upload_pdf(file: UploadFile = File(...)):
     
 @router.get("/download/{filename:path}")    
 def download(filename: str):    
-    path = OUTPUTS_DIR / filename  
-    if not path.exists():    
-        raise HTTPException(status_code=404, detail="File not found")    
-    return FileResponse(path, filename=path.name, media_type="text/markdown")
+    """Download markdown file from processed documents.
+    
+    Handles two output structures:
+    - PDF uploads: outputs/document_name.md
+    - Image uploads: outputs/document_name/document_name.md
+    """
+    # Try PDF structure first (direct file in outputs/)
+    path = OUTPUTS_DIR / f"{filename}.md"
+    if path.exists():
+        logger.info(f"Found markdown at PDF path: {path}")
+        return FileResponse(path, filename=path.name, media_type="text/markdown")
+    
+    # Try image structure (nested in document folder)
+    path = OUTPUTS_DIR / filename / f"{filename}.md"
+    if path.exists():
+        logger.info(f"Found markdown at image path: {path}")
+        return FileResponse(path, filename=path.name, media_type="text/markdown")
+    
+    # Neither path exists
+    logger.warning(f"Markdown file not found for document: {filename}")
+    raise HTTPException(status_code=404, detail="Markdown file not found")
 
 
 @router.post("/filter_tables", response_model=TableExtractionResponse)
