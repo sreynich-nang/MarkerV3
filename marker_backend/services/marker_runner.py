@@ -222,14 +222,30 @@ def run_marker_for_chunk_with_range(pdf_path: Path, page_range: str, chunk_id: i
         raise MarkerError(f"Marker failed for chunk {chunk_id}: {res.stderr}")  
   
     # Discover the output file for this chunk  
-    chunk_output = _discover_marker_output(pdf_path, out_path, res.stdout + "\n" + res.stderr)  
-    return chunk_output  
+    try:
+        chunk_output = _discover_marker_output(pdf_path, out_path, res.stdout + "\n" + res.stderr)
+        
+        if not chunk_output.exists():
+            logger.error(f"Chunk output discovered but does not exist: {chunk_output}")
+            raise MarkerError(f"Chunk output {chunk_output} does not exist")
+        
+        chunk_size_bytes = chunk_output.stat().st_size
+        if chunk_size_bytes == 0:
+            logger.error(f"Chunk output is empty: {chunk_output}")
+            raise MarkerError(f"Chunk {chunk_id} produced empty output")
+        
+        logger.info(f"Chunk {chunk_id} output validated: {chunk_size_bytes} bytes")
+        return chunk_output
+    except MarkerError as e:
+        logger.error(f"Failed to discover or validate output for chunk {chunk_id}: {e}")
+        raise  
   
   
 def _discover_marker_output(pdf_path: Path, expected_path: Path, command_output: str) -> Path:  
-    """Discover the actual output file from marker run"""  
-    # First, check the expected path  
-    if expected_path.exists():  
+    """Discover the actual output file from marker run with strict validation"""  
+    if expected_path.exists():
+        size = expected_path.stat().st_size
+        logger.info(f"Output found at expected path {expected_path} ({size} bytes)")
         return expected_path  
   
     logger.debug(f"Expected output not found at {expected_path}; attempting discovery heuristics.")  
@@ -300,53 +316,74 @@ def _discover_marker_output(pdf_path: Path, expected_path: Path, command_output:
     candidates.sort(key=lambda p: p.stat().st_mtime if p.exists() else 0, reverse=True)  
   
     if candidates:  
-        chosen = candidates[0]  
-        logger.info(f"Discovered Marker output at {chosen}")  
+        chosen = candidates[0]
+        chosen_size = chosen.stat().st_size
+        logger.info(f"Discovered Marker output at {chosen} ({chosen_size} bytes)")
+        
+        if chosen_size == 0:
+            logger.error(f"Discovered output file is empty: {chosen}")
+            raise MarkerError(f"Discovered output {chosen} is empty - no content extracted")
+        
         return chosen  
   
-    # Nothing found  
-    logger.error("Marker finished but no markdown output discovered")  
+    logger.error(f"Marker finished but no markdown output discovered. Expected: {expected_path}")  
+    logger.error(f"Command output for debugging: {command_output[:500]}")  
     raise MarkerError(f"Expected output {expected_path} not found after Marker run")  
   
   
-def combine_chunk_outputs(chunk_files: List[Path], pdf_path: Path) -> Path:  
-    """Combine multiple chunk outputs into a single markdown file"""  
+def combine_chunk_outputs(chunk_files: List[Path], pdf_path: Path, expected_chunks: int = None) -> Path:  
+    """Combine multiple chunk outputs into a single markdown file with strict validation"""  
     combined_path = _expected_output_for(pdf_path, "combined")  
       
     logger.info(f"Combining {len(chunk_files)} chunks into {combined_path}")  
+    
+    if expected_chunks is not None and len(chunk_files) < expected_chunks:
+        logger.warning(f"Expected {expected_chunks} chunks but only got {len(chunk_files)}. Some pages may be missing.")
       
     try:  
+        total_content_size = 0
+        chunk_content_map = {}
+        
         with open(combined_path, 'w', encoding='utf-8') as outfile:  
             for i, chunk_file in enumerate(chunk_files):  
                 if not chunk_file.exists():  
-                    logger.warning(f"Chunk file {chunk_file} does not exist, skipping")  
+                    logger.error(f"Chunk file {chunk_file} does not exist, CANNOT RECOVER THIS CONTENT")  
                     continue  
                   
-                logger.debug(f"Adding chunk {i+1}: {chunk_file}")  
+                logger.debug(f"Adding chunk {i+1}/{len(chunk_files)}: {chunk_file}")  
                   
-                # Try multiple encodings to handle different file formats  
                 content = None  
+                used_encoding = None
                 for encoding in ['utf-8', 'utf-8-sig', 'latin-1', 'cp1252']:  
                     try:  
                         with open(chunk_file, 'r', encoding=encoding) as infile:  
                             content = infile.read()  
-                        logger.debug(f"Successfully read {chunk_file} with {encoding} encoding")  
+                        used_encoding = encoding
+                        logger.debug(f"Successfully read {chunk_file} with {encoding} encoding ({len(content)} bytes)")  
                         break  
                     except (UnicodeDecodeError, UnicodeError):  
                         continue  
                   
                 if content is None:  
-                    logger.warning(f"Could not decode {chunk_file} with standard encodings, using fallback")  
-                    with open(chunk_file, 'rb') as infile:  
-                        content = infile.read().decode('utf-8', errors='replace')  
+                    logger.error(f"Could not decode {chunk_file} with standard encodings - CONTENT WILL BE LOST")  
+                    raise MarkerError(f"Cannot decode chunk file {chunk_file} with any supported encoding")  
                       
-                # # Add chunk separator if not the first chunk  
-                # if i > 0:  
-                #     outfile.write("\n\n--- Chunk " + str(i+1) + " ---\n\n")  
-                      
+                if i > 0:  
+                    outfile.write("\n\n--- Chunk " + str(i+1) + " ---\n\n")  
+                
+                chunk_content_map[i] = len(content)
+                total_content_size += len(content)
                 outfile.write(content)  
+                logger.info(f"Chunk {i+1} added: {len(content)} bytes, running total: {total_content_size} bytes")
           
-        logger.info(f"Successfully combined chunks into {combined_path}")  
+        logger.info(f"Successfully combined {len(chunk_files)} chunks into {combined_path} (total size: {total_content_size} bytes)")  
+        logger.info(f"Chunk content distribution: {chunk_content_map}")
+        
+        final_size = combined_path.stat().st_size
+        if final_size == 0:
+            logger.error("Combined file is empty - all content was lost!")
+            raise MarkerError("Combined markdown file is empty - no content was written")
+        
         return combined_path  
           
     except Exception as e:  
@@ -355,42 +392,63 @@ def combine_chunk_outputs(chunk_files: List[Path], pdf_path: Path) -> Path:
   
   
 def run_marker_for_chunked_pdf(pdf_path: Path, chunk_size: int = 5) -> Path:  
-    """Process a large PDF in chunks and combine the results"""  
-    # Get total page count  
+    """Process a large PDF in chunks and combine the results with strict validation"""
     total_pages = _get_total_pages(pdf_path)  
     logger.info(f"Processing {pdf_path.name} with {total_pages} pages in chunks of {chunk_size}")  
+    
+    expected_chunks = (total_pages + chunk_size - 1) // chunk_size
+    logger.info(f"Expected {expected_chunks} chunks for {total_pages} pages")
       
     chunk_files = []  
+    failed_chunks = []
       
-    # Process each chunk  
     for chunk_id, start_page in enumerate(range(0, total_pages, chunk_size)):  
         end_page = min(start_page + chunk_size - 1, total_pages - 1)  
         page_range = f"{start_page}-{end_page}"  
           
-        logger.info(f"Processing chunk {chunk_id + 1}: pages {page_range} ({start_page + 1}-{end_page + 1} of {total_pages})")  
+        logger.info(f"Processing chunk {chunk_id + 1}/{expected_chunks}: pages {page_range} ({start_page + 1}-{end_page + 1} of {total_pages})")  
           
         try:  
             chunk_output = run_marker_for_chunk_with_range(pdf_path, page_range, chunk_id)  
-            chunk_files.append(chunk_output)  
+            chunk_files.append(chunk_output)
+            logger.info(f"Chunk {chunk_id + 1} completed successfully")
         except MarkerError as e:  
-            logger.error(f"Failed to process chunk {chunk_id + 1}: {e}")  
-            # Continue with other chunks or raise based on your requirements  
-            continue  
+            logger.error(f"FAILED to process chunk {chunk_id + 1}: {e}")  
+            failed_chunks.append((chunk_id + 1, page_range, str(e)))
+            raise MarkerError(f"Chunk {chunk_id + 1} (pages {page_range}) failed. Aborting to preserve already-processed data. Error: {e}")
       
     if not chunk_files:  
         raise MarkerError("No chunks were successfully processed")  
+    
+    if len(chunk_files) < expected_chunks:
+        logger.error(f"Missing chunks! Expected {expected_chunks} but got {len(chunk_files)}")
+        raise MarkerError(f"Missing {expected_chunks - len(chunk_files)} chunk(s). Data loss detected.")
       
-    # Combine all chunk outputs  
-    combined_output = combine_chunk_outputs(chunk_files, pdf_path)  
+    logger.info(f"All {len(chunk_files)} chunks processed successfully")
+    combined_output = combine_chunk_outputs(chunk_files, pdf_path, expected_chunks=expected_chunks)  
       
-    # Clean up individual chunk files (optional)  
+    if not combined_output.exists():
+        raise MarkerError("Combined output file was not created")
+    
+    combined_size = combined_output.stat().st_size
+    logger.info(f"Combined output created: {combined_size} bytes")
+    
+    cleanup_failures = []
     try:  
         for chunk_file in chunk_files:  
-            if chunk_file.exists():  
-                chunk_file.unlink()  
-                logger.debug(f"Cleaned up chunk file: {chunk_file}")  
+            if chunk_file.exists():
+                chunk_size_bytes = chunk_file.stat().st_size
+                try:
+                    chunk_file.unlink()  
+                    logger.debug(f"Cleaned up chunk file: {chunk_file} ({chunk_size_bytes} bytes)")  
+                except Exception as e:
+                    cleanup_failures.append((str(chunk_file), str(e)))
+                    logger.warning(f"Failed to cleanup {chunk_file}: {e}")
     except Exception as e:  
-        logger.warning(f"Failed to cleanup some chunk files: {e}")  
+        logger.warning(f"Error during cleanup phase: {e}")  
+    
+    if cleanup_failures:
+        logger.warning(f"Some chunk files could not be deleted: {cleanup_failures}")
       
     return combined_output  
   
